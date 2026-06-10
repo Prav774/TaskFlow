@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Reassign Segment - TaskFlow{% endblock %}
+{% block page_title %}Reassign Segment{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto animate-fade-in">
+    <div class="glass-card p-8">
+        <div class="mb-6">
+            <h2 class="text-xl font-bold">{{ segment.name }}</h2>
+            <p class="text-gray-400">Project: {{ segment.project.title }}</p>
+            <p class="text-sm text-gray-500 mt-2">
+                Currently assigned to: 
+                {% if segment.assigned_to %}
+                    {{ segment.assigned_to.get_full_name|default:segment.assigned_to.username }}
+                {% else %}
+                    No one
+                {% endif %}
+            </p>
+        </div>
+        
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Reassign To</label>
+                <select name="new_employee"
+style="
+width:100%;
+padding:12px;
+border-radius:12px;
+background:rgba(255,255,255,0.1);
+color:white;
+border:1px solid rgba(255,255,255,0.2);
+outline:none;
+backdrop-filter:blur(10px);
+">
+    {% for value, label in form.new_employee.field.choices %}
+        <option value="{{ value }}" style="background:#1f2937; color:white;">
+            {{ label }}
+        </option>
+    {% endfor %}
+</select>
+                {% if form.new_employee.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.new_employee.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="flex gap-4">
+                <button type="submit" class="btn-primary flex-1">Reassign</button>
+                <a href="{% url 'projects:project_detail' segment.project.pk %}" class="btn-secondary flex-1 text-center">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

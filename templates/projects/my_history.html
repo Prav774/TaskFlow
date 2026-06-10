@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}My History - TaskFlow{% endblock %}
+{% block page_title %}Completed Work{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    {% if segments %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for segment in segments %}
+                <div class="glass-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="badge-approved">Approved</span>
+                        <span class="text-sm text-gray-400">{{ segment.weight }}%</span>
+                    </div>
+                    <h3 class="font-semibold text-lg mb-2">{{ segment.name }}</h3>
+                    <p class="text-gray-400 text-sm mb-4">{{ segment.project.title }}</p>
+                    <p class="text-xs text-gray-500">
+                        Completed on {{ segment.approved_at|date:"M d, Y" }}
+                    </p>
+                    {% if segment.project.rating %}
+                        <div class="mt-4 flex items-center gap-1">
+                            {% for i in "12345" %}
+                                <span class="{% if i|add:0 <= segment.project.rating %}text-yellow-400{% else %}text-gray-600{% endif %}">★</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-card p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-400 mb-2">No completed work yet</h3>
+            <p class="text-gray-500">Your approved segments will appear here.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.title }} - TaskFlow{% endblock %}
+{% block page_title %}{{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Project Header -->
+    <div class="glass-card p-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="badge-{{ project.status }}">{{ project.get_status_display }}</span>
+                    <span class="text-sm priority-{{ project.priority }}">{{ project.get_priority_display }} Priority</span>
+                    {% if project.is_overdue %}
+                        <span class="badge-overdue">Overdue</span>
+                    {% endif %}
+                </div>
+                <h1 class="text-2xl font-bold">{{ project.title }}</h1>
+            </div>
+            
+            <div class="flex gap-2">
+                <a href="{% url 'projects:project_edit' project.pk %}" class="btn-secondary">Edit</a>
+                {% if project.status == 'completed' and not project.rating %}
+                    <a href="{% url 'projects:project_rate' project.pk %}" class="btn-primary">Rate Project</a>
+                {% endif %}
+                <a href="{% url 'projects:project_delete' project.pk %}" class="btn-danger">Delete</a>
+            </div>
+        </div>
+        
+        <p class="text-gray-400 mb-6">{{ project.description }}</p>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white/5 rounded-lg p-4">
+                <p class="text-sm text-gray-400">Deadline</p>
+                <p class="font-semibold">{{ project.deadline|date:"M d, Y H:i" }}</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-4">
+                <p class="text-sm text-gray-400">Progress</p>
+                <p class="font-semibold text-gradient">{{ project.overall_progress }}%</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-4">
+                <p class="text-sm text-gray-400">Total Weight</p>
+                <p class="font-semibold {% if total_weight == 100 %}text-emerald-400{% else %}text-yellow-400{% endif %}">
+                    {{ total_weight }}%
+                </p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-4">
+                <p class="text-sm text-gray-400">Segments</p>
+                <p class="font-semibold">{{ segments.count }}</p>
+            </div>
+        </div>
+        
+        {% if project.rating %}
+            <div class="mt-4 p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-yellow-400">★</span>
+                    <span class="font-semibold">{{ project.rating }}/5</span>
+                </div>
+                {% if project.review %}
+                    <p class="text-gray-400 text-sm">{{ project.review }}</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="glass-card p-6">
+        <h3 class="text-lg font-semibold mb-4">Overall Progress</h3>
+        <div class="progress-bar h-4">
+            <div class="progress-fill" style="width: {{ project.overall_progress }}%"></div>
+        </div>
+        <p class="text-sm text-gray-400 mt-2">{{ project.overall_progress }}% complete</p>
+    </div>
+    
+    <!-- Weight Warning -->
+    {% if total_weight != 100 %}
+        <div class="glass-card p-4 border border-yellow-500/30 bg-yellow-500/10">
+            <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <div>
+                    <p class="font-semibold text-yellow-300">Segment weights don't add up to 100%</p>
+                    <p class="text-sm text-gray-400">Current total: {{ total_weight }}%. Remaining: {{ remaining_weight }}%</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Segments -->
+    <div class="glass-card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Segments</h3>
+            <a href="{% url 'projects:segment_add' project.pk %}" class="btn-primary text-sm">
+                Add Segment
+            </a>
+        </div>
+        
+        {% if segments %}
+            <div class="space-y-4">
+                {% for segment in segments %}
+                    <div class="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="badge-{{ segment.status }}">{{ segment.get_status_display }}</span>
+                                    <span class="text-sm text-gray-400">Weight: {{ segment.weight }}%</span>
+                                    {% if segment.rejection_count > 0 %}
+                                        <span class="text-sm text-red-400">Rejections: {{ segment.rejection_count }}/3</span>
+                                    {% endif %}
+                                </div>
+                                <h4 class="font-semibold text-lg">{{ segment.name }}</h4>
+                                <p class="text-sm text-gray-400 mt-1">
+                                    Assigned to: 
+                                    {% if segment.assigned_to %}
+                                        {{ segment.assigned_to.get_full_name|default:segment.assigned_to.username }}
+                                    {% else %}
+                                        <span class="text-yellow-400">Unassigned</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div class="flex flex-col items-end gap-2">
+                                <div class="w-32">
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span>{{ segment.progress }}%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: {{ segment.progress }}%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex gap-2">
+                                    <a href="{% url 'projects:segment_detail_admin' segment.pk %}" 
+                                       class="text-sm text-purple-400 hover:text-purple-300">View</a>
+                                    <a href="{% url 'projects:segment_reassign' segment.pk %}" 
+                                       class="text-sm text-blue-400 hover:text-blue-300">Reassign</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if segment.is_overdue %}
+                            <div class="mt-2 text-sm text-orange-400">
+                                ⚠️ Overdue - was due {{ segment.effective_deadline|date:"M d, Y H:i" }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <p class="text-gray-400 mb-4">No segments yet. Add segments to start the project.</p>
+                <a href="{% url 'projects:segment_add' project.pk %}" class="btn-primary">Add First Segment</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

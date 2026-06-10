@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ segment.name }} - TaskFlow{% endblock %}
+{% block page_title %}Segment Details{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6 animate-fade-in">
+    <div class="glass-card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <span class="badge-{{ segment.status }}">{{ segment.get_status_display }}</span>
+            <span class="text-gray-400">Weight: {{ segment.weight }}%</span>
+        </div>
+        
+        <h1 class="text-2xl font-bold mb-2">{{ segment.name }}</h1>
+        <p class="text-gray-400 mb-6">Project: {{ segment.project.title }}</p>
+        
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-white/5 rounded-lg p-4">
+                <p class="text-sm text-gray-400">Assigned To</p>
+                <p class="font-semibold">
+                    {% if segment.assigned_to %}
+                        {{ segment.assigned_to.get_full_name|default:segment.assigned_to.username }}
+                    {% else %}
+                        Unassigned
+                    {% endif %}
+                </p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-4">
+                <p class="text-sm text-gray-400">Deadline</p>
+                <p class="font-semibold">{{ segment.effective_deadline|date:"M d, Y H:i" }}</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-4">
+                <p class="text-sm text-gray-400">Progress</p>
+                <p class="font-semibold text-gradient">{{ segment.progress }}%</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-4">
+                <p class="text-sm text-gray-400">Rejections</p>
+                <p class="font-semibold {% if segment.rejection_count > 0 %}text-red-400{% endif %}">
+                    {{ segment.rejection_count }}/3
+                </p>
+            </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="mb-6">
+            <div class="progress-bar h-3">
+                <div class="progress-fill" style="width: {{ segment.progress }}%"></div>
+            </div>
+        </div>
+        
+        <!-- Deliverable -->
+        {% if segment.has_deliverable %}
+            <div class="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold mb-2">Deliverable</h3>
+                {% if segment.deliverable_file %}
+                    <a href="{{ segment.deliverable_file.url }}" target="_blank" 
+                       class="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Download File
+                    </a>
+                {% endif %}
+                {% if segment.deliverable_url %}
+                    <a href="{{ segment.deliverable_url }}" target="_blank"
+                       class="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                        {{ segment.deliverable_url }}
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <!-- Rejection Reason -->
+        {% if segment.rejection_reason %}
+            <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-red-300 mb-2">Last Rejection Reason</h3>
+                <p class="text-gray-300">{{ segment.rejection_reason }}</p>
+            </div>
+        {% endif %}
+        
+        <!-- Actions -->
+        <div class="flex flex-wrap gap-4">
+            {% if segment.status == 'submitted' %}
+                <a href="{% url 'projects:segment_approve' segment.pk %}" class="btn-success">Approve</a>
+                <a href="{% url 'projects:segment_reject' segment.pk %}" class="btn-danger">Reject</a>
+            {% endif %}
+            <a href="{% url 'projects:segment_reassign' segment.pk %}" class="btn-secondary">Reassign</a>
+            <a href="{% url 'projects:project_detail' segment.project.pk %}" class="btn-secondary">Back to Project</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

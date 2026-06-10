@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Employees - TaskFlow{% endblock %}
+{% block page_title %}Employees{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold">All Employees</h2>
+        <a href="{% url 'accounts:employee_create' %}" class="btn-primary inline-flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+            Add Employee
+        </a>
+    </div>
+    
+    {% if employees %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for employee in employees %}
+                <a href="{% url 'accounts:employee_detail' employee.pk %}" class="glass-card-hover p-6">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-lg font-bold">
+                            {{ employee.first_name.0|default:employee.username.0|upper }}
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">{{ employee.get_full_name|default:employee.username }}</h3>
+                            <p class="text-sm text-gray-400">{{ employee.email }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if employee.department %}
+                        <p class="text-sm text-gray-400 mb-2">{{ employee.department }}</p>
+                    {% endif %}
+                    
+                    <div class="grid grid-cols-3 gap-2 text-center mt-4">
+                        <div class="bg-white/5 rounded-lg p-2">
+                            <div class="text-lg font-bold {% if employee.active_segments >= 3 %}text-red-400{% else %}text-blue-400{% endif %}">
+                                {{ employee.active_segments }}
+                            </div>
+                            <div class="text-xs text-gray-500">Active</div>
+                        </div>
+                        <div class="bg-white/5 rounded-lg p-2">
+                            <div class="text-lg font-bold text-emerald-400">{{ employee.completed_segments }}</div>
+                            <div class="text-xs text-gray-500">Done</div>
+                        </div>
+                        <div class="bg-white/5 rounded-lg p-2">
+                            <div class="text-lg font-bold text-gray-400">{{ employee.total_segments }}</div>
+                            <div class="text-xs text-gray-500">Total</div>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-card p-12 text-center">
+            <p class="text-gray-400">No employees yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

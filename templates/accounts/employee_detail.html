@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ employee.get_full_name|default:employee.username }} - TaskFlow{% endblock %}
+{% block page_title %}Employee Details{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Employee Info -->
+    <div class="glass-card p-6">
+        <div class="flex items-center gap-6">
+            <div class="w-20 h-20 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-3xl font-bold">
+                {{ employee.first_name.0|default:employee.username.0|upper }}
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold">{{ employee.get_full_name|default:employee.username }}</h2>
+                <p class="text-gray-400">{{ employee.email }}</p>
+                {% if employee.department %}
+                    <p class="text-sm text-gray-500 mt-1">{{ employee.department }}</p>
+                {% endif %}
+                {% if employee.skills %}
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        {% for skill in employee.get_skill_list %}
+                            <span class="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="stat-card">
+            <div class="text-2xl font-bold text-gradient">{{ stats.total }}</div>
+            <div class="text-gray-400 text-sm">Total Segments</div>
+        </div>
+        <div class="stat-card">
+            <div class="text-2xl font-bold text-blue-400">{{ stats.active }}</div>
+            <div class="text-gray-400 text-sm">Active</div>
+        </div>
+        <div class="stat-card">
+            <div class="text-2xl font-bold text-emerald-400">{{ stats.completed }}</div>
+            <div class="text-gray-400 text-sm">Completed</div>
+        </div>
+        <div class="stat-card">
+            <div class="text-2xl font-bold text-red-400">{{ stats.rejected }}</div>
+            <div class="text-gray-400 text-sm">Rejected</div>
+        </div>
+    </div>
+    
+    <!-- Segments -->
+    <div class="glass-card p-6">
+        <h3 class="text-lg font-semibold mb-4">Assigned Segments</h3>
+        
+        {% if segments %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="text-left text-gray-400 text-sm border-b border-white/10">
+                            <th class="pb-3">Segment</th>
+                            <th class="pb-3">Project</th>
+                            <th class="pb-3">Status</th>
+                            <th class="pb-3">Progress</th>
+                            <th class="pb-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for segment in segments %}
+                            <tr class="border-b border-white/5">
+                                <td class="py-3">{{ segment.name }}</td>
+                                <td class="py-3 text-gray-400">{{ segment.project.title }}</td>
+                                <td class="py-3">
+                                    <span class="badge-{{ segment.status }}">{{ segment.get_status_display }}</span>
+                                </td>
+                                <td class="py-3">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-20 progress-bar">
+                                            <div class="progress-fill" style="width: {{ segment.progress }}%"></div>
+                                        </div>
+                                        <span class="text-sm text-gray-400">{{ segment.progress }}%</span>
+                                    </div>
+                                </td>
+                                <td class="py-3">
+                                    <a href="{% url 'projects:segment_reassign' segment.pk %}" 
+                                       class="text-sm text-purple-400 hover:text-purple-300">Reassign</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-gray-400 text-center py-8">No segments assigned</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

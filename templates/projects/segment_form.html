@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - TaskFlow{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto animate-fade-in">
+    <div class="glass-card p-8">
+        <div class="mb-6">
+            <p class="text-gray-400">Project: <span class="text-white">{{ project.title }}</span></p>
+            <p class="text-sm text-gray-500">Remaining weight available: {{ remaining_weight }}%</p>
+        </div>
+        
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Segment Name</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.name.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Weight (%)</label>
+                    {{ form.weight }}
+                    {% if form.weight.errors %}
+                        <p class="mt-1 text-sm text-red-400">{{ form.weight.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Assign To</label>
+                    <select name="assigned_to"
+style="
+width:100%;
+padding:12px;
+border-radius:12px;
+background:rgba(255,255,255,0.1);
+color:white;
+border:1px solid rgba(255,255,255,0.2);
+outline:none;
+backdrop-filter:blur(10px);
+">
+    {% for value, label in form.assigned_to.field.choices %}
+        <option value="{{ value }}" style="background:#1f2937; color:white;">
+            {{ label }}
+        </option>
+    {% endfor %}
+</select>
+                    {% if form.assigned_to.errors %}
+                        <p class="mt-1 text-sm text-red-400">{{ form.assigned_to.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Deadline (Optional)</label>
+                {{ form.deadline }}
+                <p class="mt-1 text-xs text-gray-500">Leave empty to use project deadline</p>
+            </div>
+            
+            {% if form.non_field_errors %}
+                <div class="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
+                    {% for error in form.non_field_errors %}
+                        <p class="text-sm text-red-300">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="flex gap-4">
+                <button type="submit" class="btn-primary flex-1">Add Segment</button>
+                <a href="{% url 'projects:project_detail' project.pk %}" class="btn-secondary flex-1 text-center">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

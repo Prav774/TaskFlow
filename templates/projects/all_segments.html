@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}All Segments - TaskFlow{% endblock %}
+{% block page_title %}All Segments{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Filters -->
+    <div class="glass-card p-4">
+        <form method="get" class="flex flex-wrap gap-2">
+            <select name="status" class="input-field w-full md:w-auto">
+                <option value="">All Status</option>
+                <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="submitted" {% if current_status == 'submitted' %}selected{% endif %}>Submitted</option>
+                <option value="approved" {% if current_status == 'approved' %}selected{% endif %}>Approved</option>
+                <option value="rejected" {% if current_status == 'rejected' %}selected{% endif %}>Rejected</option>
+                <option value="overdue" {% if current_status == 'overdue' %}selected{% endif %}>Overdue</option>
+                <option value="abandoned" {% if current_status == 'abandoned' %}selected{% endif %}>Abandoned</option>
+                <option value="failed" {% if current_status == 'failed' %}selected{% endif %}>Failed</option>
+            </select>
+            <button type="submit" class="btn-secondary">Filter</button>
+            {% if current_status %}
+                <a href="{% url 'projects:all_segments' %}" class="btn-secondary">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+    
+    <!-- Segments Table -->
+    <div class="glass-card p-6 overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="text-left text-gray-400 text-sm border-b border-white/10">
+                    <th class="pb-3">Segment</th>
+                    <th class="pb-3">Project</th>
+                    <th class="pb-3">Assigned To</th>
+                    <th class="pb-3">Status</th>
+                    <th class="pb-3">Progress</th>
+                    <th class="pb-3">Deadline</th>
+                    <th class="pb-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for segment in segments %}
+                    <tr class="border-b border-white/5 hover:bg-white/5">
+                        <td class="py-3 font-medium">{{ segment.name }}</td>
+                        <td class="py-3 text-gray-400">{{ segment.project.title }}</td>
+                        <td class="py-3">
+                            {% if segment.assigned_to %}
+                                {{ segment.assigned_to.get_full_name|default:segment.assigned_to.username }}
+                            {% else %}
+                                <span class="text-yellow-400">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3">
+                            <span class="badge-{{ segment.status }}">{{ segment.get_status_display }}</span>
+                        </td>
+                        <td class="py-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-20 progress-bar">
+                                    <div class="progress-fill" style="width: {{ segment.progress }}%"></div>
+                                </div>
+                                <span class="text-sm text-gray-400">{{ segment.progress }}%</span>
+                            </div>
+                        </td>
+                        <td class="py-3 text-sm {% if segment.is_overdue %}text-red-400{% else %}text-gray-400{% endif %}">
+                            {{ segment.effective_deadline|date:"M d, Y" }}
+                        </td>
+                        <td class="py-3">
+                            <div class="flex gap-2">
+                                {% if segment.status == 'submitted' %}
+                                    <a href="{% url 'projects:segment_approve' segment.pk %}" 
+                                       class="text-emerald-400 hover:text-emerald-300 text-sm">Approve</a>
+                                    <a href="{% url 'projects:segment_reject' segment.pk %}" 
+                                       class="text-red-400 hover:text-red-300 text-sm">Reject</a>
+                                {% endif %}
+                                <a href="{% url 'projects:segment_detail_admin' segment.pk %}" 
+                                   class="text-purple-400 hover:text-purple-300 text-sm">View</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-gray-400">No segments found</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

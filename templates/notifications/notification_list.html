@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - TaskFlow{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <div class="flex justify-between items-center">
+        <h2 class="text-xl font-bold">All Notifications</h2>
+        {% if notifications %}
+            <a href="{% url 'notifications:mark_all_read' %}" class="btn-secondary text-sm">
+                Mark all as read
+            </a>
+        {% endif %}
+    </div>
+    
+    {% if notifications %}
+        <div class="glass-card divide-y divide-white/10">
+            {% for notification in notifications %}
+                <div class="p-4 {% if not notification.is_read %}bg-purple-500/10{% endif %} hover:bg-white/5 transition-colors">
+                    <div class="flex items-start gap-4">
+                        <span class="text-2xl">{{ notification.icon }}</span>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-1">
+                                <h3 class="font-semibold {% if not notification.is_read %}text-white{% else %}text-gray-300{% endif %}">
+                                    {{ notification.title }}
+                                </h3>
+                                <span class="text-xs text-gray-500">{{ notification.created_at|timesince }} ago</span>
+                            </div>
+                            <p class="text-gray-400 text-sm">{{ notification.message }}</p>
+                            {% if notification.related_segment %}
+                                <a href="{% if request.user.is_admin_user %}{% url 'projects:segment_detail_admin' notification.related_segment.pk %}{% else %}{% url 'projects:segment_detail_employee' notification.related_segment.pk %}{% endif %}" 
+                                   class="text-sm text-purple-400 hover:text-purple-300 mt-2 inline-block">
+                                    View Segment →
+                                </a>
+                            {% endif %}
+                        </div>
+                        {% if not notification.is_read %}
+                            <a href="{% url 'notifications:mark_as_read' notification.pk %}" 
+                               class="p-2 text-gray-400 hover:text-white transition-colors"
+                               title="Mark as read">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-card p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-400 mb-2">No notifications</h3>
+            <p class="text-gray-500">You're all caught up!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

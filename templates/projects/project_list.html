@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Projects - TaskFlow{% endblock %}
+{% block page_title %}Projects{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <a href="{% url 'projects:project_create' %}" class="btn-primary inline-flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            New Project
+        </a>
+        
+        <!-- Search and Filters -->
+        <form method="get" class="flex flex-wrap gap-2">
+            <input type="text" name="search" value="{{ search }}" placeholder="Search projects..."
+                   class="input-field w-full md:w-auto">
+            <select name="status" class="input-field w-full md:w-auto">
+                <option value="">All Status</option>
+                <option value="planning" {% if current_status == 'planning' %}selected{% endif %}>Planning</option>
+                <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="on_hold" {% if current_status == 'on_hold' %}selected{% endif %}>On Hold</option>
+            </select>
+            <select name="priority" class="input-field w-full md:w-auto">
+                <option value="">All Priority</option>
+                <option value="high" {% if current_priority == 'high' %}selected{% endif %}>High</option>
+                <option value="medium" {% if current_priority == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="low" {% if current_priority == 'low' %}selected{% endif %}>Low</option>
+            </select>
+            <button type="submit" class="btn-secondary">Filter</button>
+        </form>
+    </div>
+    
+    <!-- Projects Grid -->
+    {% if projects %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for project in projects %}
+                <div class="glass-card-hover p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <span class="badge-{{ project.status }}">{{ project.get_status_display }}</span>
+                            <span class="ml-2 text-sm priority-{{ project.priority }}">
+                                {{ project.get_priority_display }} Priority
+                            </span>
+                        </div>
+                        {% if project.is_overdue %}
+                            <span class="text-red-400 text-sm">Overdue</span>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold mb-2">{{ project.title }}</h3>
+                    <p class="text-gray-400 text-sm mb-4 line-clamp-2">{{ project.description }}</p>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>Progress</span>
+                            <span>{{ project.overall_progress }}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ project.overall_progress }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between text-sm text-gray-400 mb-4">
+                        <span>Deadline: {{ project.deadline|date:"M d, Y" }}</span>
+                        <span>{{ project.segments.count }} segments</span>
+                    </div>
+                    
+                    <a href="{% url 'projects:project_detail' project.pk %}" class="btn-secondary w-full text-center">
+                        View Details
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-card p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-400 mb-2">No projects found</h3>
+            <p class="text-gray-500 mb-4">Create your first project to get started.</p>
+            <a href="{% url 'projects:project_create' %}" class="btn-primary">Create Project</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

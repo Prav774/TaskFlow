@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - TaskFlow{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="stat-card animate-fade-in">
+            <div class="text-3xl font-bold text-gradient">{{ total_projects }}</div>
+            <div class="text-gray-400 text-sm mt-1">Total Projects</div>
+        </div>
+        <div class="stat-card animate-fade-in animate-delay-100">
+            <div class="text-3xl font-bold text-blue-400">{{ active_projects }}</div>
+            <div class="text-gray-400 text-sm mt-1">Active Projects</div>
+        </div>
+        <div class="stat-card animate-fade-in animate-delay-200">
+            <div class="text-3xl font-bold text-emerald-400">{{ completed_projects }}</div>
+            <div class="text-gray-400 text-sm mt-1">Completed</div>
+        </div>
+        <div class="stat-card animate-fade-in animate-delay-300">
+            <div class="text-3xl font-bold text-orange-400">{{ overdue_segments }}</div>
+            <div class="text-gray-400 text-sm mt-1">Overdue Segments</div>
+        </div>
+        <div class="stat-card animate-fade-in">
+            <div class="text-3xl font-bold text-purple-400">{{ avg_progress }}%</div>
+            <div class="text-gray-400 text-sm mt-1">Avg. Progress</div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="flex flex-wrap gap-4">
+        <a href="{% url 'projects:project_create' %}" class="btn-primary inline-flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            New Project
+        </a>
+        <a href="{% url 'accounts:employee_create' %}" class="btn-secondary inline-flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+            Add Employee
+        </a>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Pending Approvals -->
+        <div class="glass-card p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
+                Pending Approvals
+            </h3>
+            
+            {% if pending_approvals %}
+                <div class="space-y-3">
+                    {% for segment in pending_approvals %}
+                        <div class="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="font-medium">{{ segment.name }}</p>
+                                    <p class="text-sm text-gray-400">{{ segment.project.title }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        By {{ segment.assigned_to.get_full_name|default:segment.assigned_to.username }}
+                                        • {{ segment.submitted_at|timesince }} ago
+                                    </p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <a href="{% url 'projects:segment_approve' segment.pk %}" 
+                                       class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                                       title="Approve">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </a>
+                                    <a href="{% url 'projects:segment_reject' segment.pk %}" 
+                                       class="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+                                       title="Reject">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                            {% if segment.deliverable_file %}
+                                <a href="{{ segment.deliverable_file.url }}" target="_blank" 
+                                   class="inline-flex items-center gap-1 mt-2 text-sm text-purple-400 hover:text-purple-300">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    Download File
+                                </a>
+                            {% elif segment.deliverable_url %}
+                                <a href="{{ segment.deliverable_url }}" target="_blank"
+                                   class="inline-flex items-center gap-1 mt-2 text-sm text-purple-400 hover:text-purple-300">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                    </svg>
+                                    View Link
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-400 text-center py-8">No pending approvals</p>
+            {% endif %}
+        </div>
+        
+        <!-- Recent Projects -->
+        <div class="glass-card p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                Recent Projects
+            </h3>
+            
+            {% if recent_projects %}
+                <div class="space-y-3">
+                    {% for project in recent_projects %}
+                        <a href="{% url 'projects:project_detail' project.pk %}" 
+                           class="block bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="font-medium">{{ project.title }}</p>
+                                <span class="badge-{{ project.status|lower }}">{{ project.get_status_display }}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ project.overall_progress }}%"></div>
+                            </div>
+                            <p class="text-sm text-gray-400 mt-2">{{ project.overall_progress }}% complete</p>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-400 text-center py-8">No projects yet</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Employee Workload -->
+        <div class="glass-card p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                Employee Workload
+            </h3>
+            
+            {% if employees %}
+                <div class="space-y-3">
+                    {% for employee in employees %}
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold">
+                                    {{ employee.first_name.0|default:employee.username.0|upper }}
+                                </div>
+                                <span>{{ employee.get_full_name|default:employee.username }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm {% if employee.active_segments >= 3 %}text-red-400{% else %}text-gray-400{% endif %}">
+                                    {{ employee.active_segments }}/3 active
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-400 text-center py-8">No employees yet</p>
+            {% endif %}
+        </div>
+        
+        <!-- Overdue Segments -->
+        <div class="glass-card p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Overdue Segments
+            </h3>
+            
+            {% if overdue_list %}
+                <div class="space-y-3">
+                    {% for segment in overdue_list %}
+                        <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="font-medium text-red-300">{{ segment.name }}</p>
+                                    <p class="text-sm text-gray-400">{{ segment.project.title }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Assigned to: {{ segment.assigned_to.get_full_name|default:segment.assigned_to.username }}
+                                    </p>
+                                </div>
+                                <a href="{% url 'projects:segment_reassign' segment.pk %}" 
+                                   class="btn-secondary text-sm px-3 py-1">
+                                    Reassign
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-400 text-center py-8">No overdue segments 🎉</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

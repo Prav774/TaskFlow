@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ segment.name }} - TaskFlow{% endblock %}
+{% block page_title %}{{ segment.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6 animate-fade-in">
+    <div class="glass-card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <span class="badge-{{ segment.status }}">{{ segment.get_status_display }}</span>
+            <span class="text-gray-400">Weight: {{ segment.weight }}%</span>
+        </div>
+        
+        <h1 class="text-2xl font-bold mb-2">{{ segment.name }}</h1>
+        <p class="text-gray-400 mb-6">Project: {{ segment.project.title }}</p>
+        
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-white/5 rounded-lg p-4">
+                <p class="text-sm text-gray-400">Deadline</p>
+                <p class="font-semibold {% if segment.is_overdue %}text-red-400{% endif %}">
+                    {{ segment.effective_deadline|date:"M d, Y H:i" }}
+                </p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-4">
+                <p class="text-sm text-gray-400">Rejections</p>
+                <p class="font-semibold {% if segment.rejection_count > 0 %}text-red-400{% endif %}">
+                    {{ segment.rejection_count }}/3
+                </p>
+            </div>
+        </div>
+        
+        {% if segment.rejection_reason %}
+            <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-red-300 mb-2">Rejection Feedback</h3>
+                <p class="text-gray-300">{{ segment.rejection_reason }}</p>
+            </div>
+        {% endif %}
+        
+        {% if segment.status != 'approved' and segment.status != 'failed' %}
+            <!-- Progress Update -->
+            <div class="mb-6">
+                <h3 class="font-semibold mb-4">Update Progress</h3>
+                <form method="post" action="{% url 'projects:segment_update_progress' segment.pk %}" 
+                      id="progress-form" class="space-y-4">
+                    {% csrf_token %}
+                    <div class="flex items-center gap-4">
+                        <input type="range" name="progress" value="{{ segment.progress }}" 
+                               min="0" max="100" step="5"
+                               class="flex-1 slider"
+                               id="progress-slider">
+                        <span id="progress-value" class="text-2xl font-bold text-gradient w-20 text-right">
+                            {{ segment.progress }}%
+                        </span>
+                    </div>
+                    <div class="progress-bar h-4">
+                        <div class="progress-fill" id="progress-bar-fill" style="width: {{ segment.progress }}%"></div>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Save Progress</button>
+                </form>
+            </div>
+            
+            <!-- Submit Section -->
+            {% if segment.progress == 100 %}
+                <div class="border-t border-white/10 pt-6">
+                    <h3 class="font-semibold mb-4">Submit for Approval</h3>
+                    
+                    {% if segment.has_deliverable %}
+                        <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 mb-4">
+                            <p class="text-emerald-300">✓ Deliverable attached</p>
+                            {% if segment.deliverable_file %}
+                                <p class="text-sm text-gray-400 mt-1">File: {{ segment.deliverable_file.name }}</p>
+                            {% endif %}
+                            {% if segment.deliverable_url %}
+                                <p class="text-sm text-gray-400 mt-1">URL: {{ segment.deliverable_url }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'projects:segment_submit' segment.pk %}" class="btn-success w-full text-center block">
+                        {% if segment.has_deliverable %}Submit for Approval{% else %}Upload Deliverable & Submit{% endif %}
+                    </a>
+                </div>
+            {% else %}
+                <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                    <p class="text-yellow-300">Complete 100% progress to submit for approval</p>
+                </div>
+            {% endif %}
+        {% elif segment.status == 'approved' %}
+            <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-6 text-center">
+                <svg class="w-12 h-12 mx-auto text-emerald-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-emerald-300 text-lg font-semibold">This segment has been approved!</p>
+                <p class="text-gray-400 text-sm mt-1">Approved on {{ segment.approved_at|date:"M d, Y H:i" }}</p>
+            </div>
+        {% elif segment.status == 'failed' %}
+            <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
+                <svg class="w-12 h-12 mx-auto text-red-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-red-300 text-lg font-semibold">This segment has reached maximum rejections</p>
+                <p class="text-gray-400 text-sm mt-1">Please contact your admin for reassignment</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <a href="{% url 'accounts:employee_dashboard' %}" class="btn-secondary inline-block">
+        ← Back to Dashboard
+    </a>
+</div>
+
+<script>
+    const slider = document.getElementById('progress-slider');
+    const value = document.getElementById('progress-value');
+    const bar = document.getElementById('progress-bar-fill');
+    
+    if (slider) {
+        slider.addEventListener('input', function() {
+            value.textContent = this.value + '%';
+            bar.style.width = this.value + '%';
+        });
+    }
+</script>
+{% endblock %}

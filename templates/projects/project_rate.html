@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Rate Project - TaskFlow{% endblock %}
+{% block page_title %}Rate Project{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto animate-fade-in">
+    <div class="glass-card p-8">
+        <div class="text-center mb-8">
+            <svg class="w-16 h-16 mx-auto text-emerald-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <h2 class="text-2xl font-bold">{{ project.title }}</h2>
+            <p class="text-emerald-400">Project Completed!</p>
+        </div>
+        
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Rating (1-5 stars)</label>
+                <div class="flex gap-2">
+                    {% for i in "12345" %}
+                        <label class="cursor-pointer">
+                            <input type="radio" name="rating" value="{{ i }}" class="hidden peer"
+                                   {% if project.rating == i|add:0 %}checked{% endif %}>
+                            <span class="text-3xl text-gray-600 peer-checked:text-yellow-400 hover:text-yellow-300 transition-colors">★</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Review (Optional)</label>
+                {{ form.review }}
+            </div>
+            
+            <div class="flex gap-4">
+                <button type="submit" class="btn-primary flex-1">Submit Rating</button>
+                <a href="{% url 'projects:project_detail' project.pk %}" class="btn-secondary flex-1 text-center">Skip</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

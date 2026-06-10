@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Reject Segment - TaskFlow{% endblock %}
+{% block page_title %}Reject Segment{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto animate-fade-in">
+    <div class="glass-card p-8">
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-red-300">{{ segment.name }}</h2>
+            <p class="text-gray-400">Project: {{ segment.project.title }}</p>
+            <p class="text-sm text-gray-500 mt-2">
+                Submitted by: {{ segment.assigned_to.get_full_name|default:segment.assigned_to.username }}
+            </p>
+            <p class="text-sm text-yellow-400 mt-1">
+                Current rejections: {{ segment.rejection_count }}/3
+            </p>
+        </div>
+        
+        {% if segment.rejection_count >= 2 %}
+            <div class="bg-red-500/20 border border-red-500/30 rounded-lg p-4 mb-6">
+                <p class="text-red-300 font-semibold">⚠️ Warning: This will be the final rejection!</p>
+                <p class="text-sm text-gray-400 mt-1">The segment will be marked as "Failed" and must be reassigned.</p>
+            </div>
+        {% endif %}
+        
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Rejection Reason (Required)</label>
+                {{ form.reason }}
+                <p class="mt-1 text-xs text-gray-500">Explain what needs to be fixed or improved.</p>
+            </div>
+            
+            <div class="flex gap-4">
+                <button type="submit" class="btn-danger flex-1">Reject</button>
+                <a href="{% url 'accounts:admin_dashboard' %}" class="btn-secondary flex-1 text-center">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

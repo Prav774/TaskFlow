@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Activity Log - TaskFlow{% endblock %}
+{% block page_title %}Activity Log{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <div class="glass-card p-6">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="text-left text-gray-400 text-sm border-b border-white/10">
+                        <th class="pb-3">Timestamp</th>
+                        <th class="pb-3">User</th>
+                        <th class="pb-3">Action</th>
+                        <th class="pb-3">Description</th>
+                        <th class="pb-3">IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                        <tr class="border-b border-white/5 hover:bg-white/5">
+                            <td class="py-3 text-sm text-gray-400">
+                                {{ log.timestamp|date:"M d, Y H:i:s" }}
+                            </td>
+                            <td class="py-3">
+                                {% if log.user %}
+                                    {{ log.user.get_full_name|default:log.user.username }}
+                                {% else %}
+                                    <span class="text-gray-500">System</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3">
+                                <span class="px-2 py-1 bg-white/10 rounded text-xs">{{ log.get_action_display }}</span>
+                            </td>
+                            <td class="py-3 text-sm">{{ log.description }}</td>
+                            <td class="py-3 text-sm text-gray-500">{{ log.ip_address|default:"-" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-8 text-center text-gray-400">No activity logged yet</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

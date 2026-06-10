@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Segment - TaskFlow{% endblock %}
+{% block page_title %}Submit for Approval{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto animate-fade-in">
+    <div class="glass-card p-8">
+        <div class="mb-6">
+            <h2 class="text-xl font-bold">{{ segment.name }}</h2>
+            <p class="text-gray-400">Project: {{ segment.project.title }}</p>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="bg-white/5 rounded-lg p-4 mb-4">
+                <p class="text-sm text-gray-400 mb-2">Provide proof of completion:</p>
+                <ul class="text-sm text-gray-500 list-disc list-inside">
+                    <li>Upload a file (PDF, JPG, PNG, ZIP, DOC, DOCX - max 10MB)</li>
+                    <li>Or provide a URL (GitHub, Figma, deployed site, etc.)</li>
+                </ul>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Upload File</label>
+                <input type="file" name="deliverable_file" 
+                       accept=".pdf,.jpg,.jpeg,.png,.zip,.doc,.docx"
+                       class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-500 file:text-white file:cursor-pointer">
+                {% if form.deliverable_file.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.deliverable_file.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="text-center text-gray-500">- OR -</div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Deliverable URL</label>
+                {{ form.deliverable_url }}
+                {% if form.deliverable_url.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.deliverable_url.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            {% if form.non_field_errors %}
+                <div class="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
+                    {% for error in form.non_field_errors %}
+                        <p class="text-sm text-red-300">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="flex gap-4">
+                <button type="submit" class="btn-success flex-1">Submit for Approval</button>
+                <a href="{% url 'projects:segment_detail_employee' segment.pk %}" class="btn-secondary flex-1 text-center">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
